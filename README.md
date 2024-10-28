@@ -33,26 +33,13 @@ module "mig_backend_regional_lb" {
 
 ## Inputs
 
-| Name                   | Description | Type   | Default       | Required |
-| ---------------------- | ----------- | ------ | ------------- | :------: |
-| `backend_service_name` | The name of | string | n/a           | yes      |
-:                        : the backend :        :               :          :
-:                        : service     :        :               :          :
-| `region`               | The region  | string | `us-central1` | no       |
-:                        : where the   :        :               :          :
-:                        : load        :        :               :          :
-:                        : balancer    :        :               :          :
-:                        : will be     :        :               :          :
-:                        : created     :        :               :          :
-| `url_map_name`         | The name of | string | n/a           | yes      |
-:                        : the URL map :        :               :          :
-| `proxy_name`           | The name of | string | n/a           | yes      |
-:                        : the HTTP    :        :               :          :
-:                        : proxy       :        :               :          :
-| `forwarding_rule_name` | The name of | string | n/a           | yes      |
-:                        : the         :        :               :          :
-:                        : forwarding  :        :               :          :
-:                        : rule        :        :               :          :
+| Name                  | Description                                         | Type   | Default       | Required |
+|-----------------------|-----------------------------------------------------|--------|---------------|:--------:|
+| `backend_service_name`| The name of the backend service                     | string | n/a           | yes      |
+| `region`              | The region where the load balancer will be created  | string | `us-central1` | no       |
+| `url_map_name`        | The name of the URL map                             | string | n/a           | yes      |
+| `proxy_name`          | The name of the HTTP proxy                          | string | n/a           | yes      |
+| `forwarding_rule_name`| The name of the forwarding rule                     | string | n/a           | yes      |
 
 ## Outputs
 
