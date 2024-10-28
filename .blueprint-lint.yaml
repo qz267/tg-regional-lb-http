@@ -1,0 +1,3 @@
+disabled_rules:
+  - "example_rule_1"
+  - "example_rule_2"
