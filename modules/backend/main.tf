@@ -16,7 +16,6 @@ resource "google_compute_region_backend_service" "default" {
   protocol      = "HTTP"
   timeout_sec   = 10
   health_checks = [google_compute_health_check.default.self_link]
-
   backend {
     group = var.instance_group
   }
