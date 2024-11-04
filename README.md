@@ -1,4 +1,4 @@
-# terraform-google-lb-regional
+# terraform-google-regional-lb
 
 ## Overview
 
