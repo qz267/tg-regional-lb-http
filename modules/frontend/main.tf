@@ -4,7 +4,7 @@ resource "google_compute_region_target_http_proxy" "default" {
   url_map = var.url_map
 }
 
-resource "google_compute_region_forwarding_rule" "default" {
+resource "google_compute_forwarding_rule" "default" {
   name       = var.forwarding_rule_name
   target     = google_compute_region_target_http_proxy.default.self_link
   region     = var.region
