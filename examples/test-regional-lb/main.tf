@@ -20,7 +20,7 @@ provider "google" {
 }
 
 module "backend" {
-  source               = "googlestaging/regional-lb-http/google//modules/backend"
+  source               = "../../modules/backend"
   backend_service_name = "test-backend-service"
   region               = var.region
   instance_group       = google_compute_region_instance_group_manager.default.instance_group
@@ -28,7 +28,7 @@ module "backend" {
 }
 
 module "frontend" {
-  source               = "googlestaging/regional-lb-http/google//modules/frontend"
+  source               = "../../modules/frontend"
   proxy_name           = "test-http-proxy"
   url_map              = module.backend.backend_service_name
   forwarding_rule_name = "test-forwarding-rule"
