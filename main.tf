@@ -22,13 +22,13 @@ resource "google_compute_region_backend_service" "default" {
 }
 
 resource "google_compute_region_url_map" "default" {
-  name            = var.url_map_name
+  name            = "${var.name}-url-map"
   default_service = google_compute_region_backend_service.default.id
 }
 
 resource "google_compute_region_target_http_proxy" "default" {
   name    = var.proxy_name
-  region     = var.region
+  region  = var.region
   url_map = var.url_map
 }
 

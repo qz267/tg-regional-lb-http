@@ -1,10 +1,26 @@
+/**
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 provider "google" {
   project = var.project_id
   region  = var.region
 }
 
 module "backend" {
-  source               = "../../modules/backend"
+  source               = "googlestaging/regional-lb-http/google//modules/backend"
   backend_service_name = "test-backend-service"
   region               = var.region
   instance_group       = google_compute_region_instance_group_manager.default.instance_group
@@ -12,15 +28,15 @@ module "backend" {
 }
 
 module "frontend" {
-  source              = "../../modules/frontend"
-  proxy_name          = "test-http-proxy"
-  url_map             = module.backend.backend_service_name
+  source               = "googlestaging/regional-lb-http/google//modules/frontend"
+  proxy_name           = "test-http-proxy"
+  url_map              = module.backend.backend_service_name
   forwarding_rule_name = "test-forwarding-rule"
 }
 
 resource "google_compute_instance_template" "default" {
-  name_prefix   = "test-template-"
-  machine_type  = "e2-medium"
+  name_prefix  = "test-template-"
+  machine_type = "e2-medium"
 
   disk {
     source_image = "debian-cloud/debian-11"

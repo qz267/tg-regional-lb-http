@@ -1,0 +1,74 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: blueprints.cloud.google.com/v1alpha1
+kind: BlueprintMetadata
+metadata:
+  name: terraform-google-regional-lb-http
+  annotations:
+    config.kubernetes.io/local-config: "true"
+spec:
+  info:
+    title: Regional HTTP Load Balancer Terraform Module
+    source:
+      repo: https://github.com/googlestaging/terraform-google-regional-lb-http.git
+      sourceType: git
+    actuationTool:
+      flavor: Terraform
+      version: ">= 1.0.0"
+    description: {}
+  content:
+    subBlueprints:
+      - name: backend
+        location: modules/backend
+      - name: frontend
+        location: modules/frontend
+    examples:
+      - name: test-regional-lb
+        location: examples/test-regional-lb
+  interfaces:
+    variables:
+      - name: name
+        description: Name for the forwarding rule and prefix for supporting resources
+        varType: string
+        required: true
+      - name: backend_service_name
+        description: The name of the backend service
+        varType: string
+        required: true
+      - name: region
+        description: The region where the load balancer will be created
+        varType: string
+        defaultValue: us-central1
+      - name: url_map
+        description: The URL map to associate with the proxy
+        varType: string
+        required: true
+      - name: proxy_name
+        description: The name of the HTTP proxy
+        varType: string
+        required: true
+      - name: forwarding_rule_name
+        description: The name of the forwarding rule
+        varType: string
+        required: true
+    outputs:
+      - name: backend_service_name
+        description: The name of the backend service
+      - name: forwarding_rule_ip
+        description: The IP address of the forwarding rule
+      - name: proxy_name
+        description: The name of the HTTP proxy
+      - name: url_map_name
+        description: The name of the URL map

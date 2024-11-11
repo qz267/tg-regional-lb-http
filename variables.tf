@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+variable "name" {
+  description = "Name for the forwarding rule and prefix for supporting resources"
+  type        = string
+}
+
 variable "backend_service_name" {
   description = "The name of the backend service"
   type        = string
@@ -25,8 +30,8 @@ variable "region" {
   default     = "us-central1"
 }
 
-variable "url_map_name" {
-  description = "The name of the URL map"
+variable "url_map" {
+  description = "The URL map to associate with the proxy"
   type        = string
 }
 
