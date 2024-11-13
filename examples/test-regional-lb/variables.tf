@@ -24,8 +24,3 @@ variable "region" {
   type        = string
   default     = "us-central1"
 }
-
-variable "instance_group" {
-  description = "The instance group used for the backend service"
-  type        = string
-}

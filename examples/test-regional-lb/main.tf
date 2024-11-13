@@ -22,7 +22,7 @@ provider "google" {
 module "backend" {
   source               = "../../modules/backend"
   backend_service_name = "test-backend-service"
-  instance_group       = var.instance_group
+  instance_group       = google_compute_region_instance_group_manager.default.instance_group
   project_id           = var.project_id
   region               = var.region
   health_check_name    = "test-health-check"
