@@ -56,3 +56,41 @@ resource "google_compute_firewall" "default_hc" {
     ports    = [var.health_check_port]
   }
 }
+
+resource "google_compute_region_network_endpoint_group" "serverless_negs" {
+  for_each = { for serverless_neg_backend in var.serverless_neg_backends :
+  "neg-${var.backend_service_name}-${serverless_neg_backend.region}" => serverless_neg_backend }
+
+
+  provider              = google-beta
+  project               = var.project_id
+  name                  = each.key
+  network_endpoint_type = "SERVERLESS"
+  region                = each.value.region
+
+  dynamic "cloud_run" {
+    for_each = each.value.type == "cloud-run" ? [1] : []
+    content {
+      service = each.value.service_name
+    }
+  }
+
+  dynamic "cloud_function" {
+    for_each = each.value.type == "cloud-function" ? [1] : []
+    content {
+      function = each.value.service_name
+    }
+  }
+
+  dynamic "app_engine" {
+    for_each = each.value.type == "app-engine" ? [1] : []
+    content {
+      service = each.value.service_name
+      version = each.value.service_version
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}

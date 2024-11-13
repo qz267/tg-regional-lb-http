@@ -113,3 +113,14 @@ variable "target_service_accounts" {
   type        = list(string)
   default     = []
 }
+
+variable "serverless_neg_backends" {
+  description = "The list of serverless backend which serves the traffic."
+  type = list(object({
+    region          = string
+    type            = string // cloud-run, cloud-function, and app-engine
+    service_name    = string
+    service_version = optional(string)
+  }))
+  default = []
+}
