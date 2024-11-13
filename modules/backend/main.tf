@@ -37,18 +37,22 @@ resource "google_compute_region_backend_service" "default" {
   }
 }
 
-resource "google_compute_firewall" "allow_health_check" {
-  name    = "allow-health-check"
-  network = var.network
+resource "google_compute_firewall" "default_hc" {
+  count   = var.health_check != null ? length(var.firewall_networks) : 0
+  project = length(var.firewall_networks) == 1 && var.firewall_projects[0] == "default" ? var.project_id : var.firewall_projects[count.index]
+  name    = "${var.backend_service_name}-hc-${count.index}"
+  network = var.firewall_networks[count.index]
+  source_ranges = [
+    "130.211.0.0/22",
+    "35.191.0.0/16"
+  ]
+
+  target_tags             = length(var.target_tags) > 0 ? var.target_tags : null
+  target_service_accounts = length(var.target_service_accounts) > 0 ? var.target_service_accounts : null
+
 
   allow {
     protocol = "tcp"
     ports    = [var.health_check_port]
   }
-
-  source_ranges = [
-    "130.211.0.0/22",
-    "35.191.0.0/16"
-  ]
-  target_tags = [var.instance_group_tag]
 }

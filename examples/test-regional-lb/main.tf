@@ -22,6 +22,8 @@ provider "google" {
 module "backend" {
   source               = "../../modules/backend"
   backend_service_name = "test-backend-service"
+  instance_group       = var.instance_group
+  project_id           = var.project_id
   region               = var.region
   health_check_name    = "test-health-check"
 }
