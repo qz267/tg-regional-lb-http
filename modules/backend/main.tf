@@ -36,3 +36,61 @@ resource "google_compute_region_backend_service" "default" {
     group = var.instance_group
   }
 }
+
+resource "google_compute_firewall" "default_hc" {
+  count   = var.health_check != null ? length(var.firewall_networks) : 0
+  project = length(var.firewall_networks) == 1 && var.firewall_projects[0] == "default" ? var.project_id : var.firewall_projects[count.index]
+  name    = "${var.backend_service_name}-hc-${count.index}"
+  network = var.firewall_networks[count.index]
+  source_ranges = [
+    "130.211.0.0/22",
+    "35.191.0.0/16"
+  ]
+
+  target_tags             = length(var.target_tags) > 0 ? var.target_tags : null
+  target_service_accounts = length(var.target_service_accounts) > 0 ? var.target_service_accounts : null
+
+
+  allow {
+    protocol = "tcp"
+    ports    = [var.health_check_port]
+  }
+}
+
+resource "google_compute_region_network_endpoint_group" "serverless_negs" {
+  for_each = { for serverless_neg_backend in var.serverless_neg_backends :
+  "neg-${var.backend_service_name}-${serverless_neg_backend.region}" => serverless_neg_backend }
+
+
+  provider              = google-beta
+  project               = var.project_id
+  name                  = each.key
+  network_endpoint_type = "SERVERLESS"
+  region                = each.value.region
+
+  dynamic "cloud_run" {
+    for_each = each.value.type == "cloud-run" ? [1] : []
+    content {
+      service = each.value.service_name
+    }
+  }
+
+  dynamic "cloud_function" {
+    for_each = each.value.type == "cloud-function" ? [1] : []
+    content {
+      function = each.value.service_name
+    }
+  }
+
+  dynamic "app_engine" {
+    for_each = each.value.type == "app-engine" ? [1] : []
+    content {
+      service = each.value.service_name
+      version = each.value.service_version
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
