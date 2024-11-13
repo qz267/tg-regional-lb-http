@@ -24,8 +24,13 @@ variable "region" {
   type        = string
 }
 
-variable "instance_group" {
-  description = "The instance group used for the backend service"
+variable "network" {
+  description = "The VPC network where the firewall rule will be created"
+  type        = string
+}
+
+variable "instance_group_tag" {
+  description = "The network tag to be used for the instance group to allow health checks"
   type        = string
 }
 
@@ -62,4 +67,9 @@ variable "health_check_port" {
   description = "Port for the health check"
   type        = number
   default     = 80
+}
+
+variable "instance_group" {
+  description = "The instance group used for the backend service"
+  type        = string
 }
