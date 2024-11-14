@@ -19,7 +19,12 @@ output "forwarding_rule_ip" {
   value       = google_compute_forwarding_rule.default.ip_address
 }
 
-output "proxy_name" {
-  description = "The name of the HTTP proxy"
-  value       = google_compute_region_target_http_proxy.default.name
+output "http_proxy" {
+  description = "The HTTP proxy used by this module."
+  value       = google_compute_region_target_http_proxy.default[*].self_link
+}
+
+output "https_proxy" {
+  description = "The HTTPS proxy used by this module."
+  value       = google_compute_region_target_https_proxy.default[*].self_link
 }
