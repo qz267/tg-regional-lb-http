@@ -29,3 +29,9 @@ variable "backend_service_self_link" {
   description = "The backend service self link"
   type        = string
 }
+
+variable "ssl_certificate" {
+  description = "SSL cert self_link list."
+  type        = string
+  default     = ""
+}

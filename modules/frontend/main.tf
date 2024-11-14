@@ -26,9 +26,24 @@ resource "google_compute_region_target_http_proxy" "default" {
   url_map = google_compute_region_url_map.default.self_link
 }
 
+resource "google_compute_region_target_https_proxy" "default" {
+  name             = "${var.name}-region-https-proxy"
+  region           = var.region
+  url_map          = google_compute_region_url_map.default.self_link
+  ssl_certificates = [var.ssl_certificate]
+}
+
 resource "google_compute_forwarding_rule" "default" {
-  name       = "${var.name}-forwarding-rule"
+  name       = "${var.name}-forwarding-rule-http"
   target     = google_compute_region_target_http_proxy.default.self_link
   region     = var.region
   port_range = "80"
 }
+
+resource "google_compute_forwarding_rule" "https" {
+  name       = "${var.name}-forwarding-rule-https"
+  target     = google_compute_region_target_https_proxy.default.self_link
+  region     = var.region
+  port_range = "443"
+}
+
