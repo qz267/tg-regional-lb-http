@@ -29,10 +29,9 @@ module "backend" {
 }
 
 module "frontend" {
-  source               = "../../modules/frontend"
-  proxy_name           = "test-http-proxy"
-  url_map              = module.backend.backend_service_name
-  forwarding_rule_name = "test-forwarding-rule"
+  source                    = "../../modules/frontend"
+  name                      = "test-regional-lb"
+  backend_service_self_link = module.backend.backend_service_self_link
 }
 
 resource "google_compute_instance_template" "default" {

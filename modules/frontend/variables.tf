@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
+variable "name" {
+  description = "Name for the forwarding rule and prefix for supporting resources"
+  type        = string
+}
+
 variable "region" {
   description = "The region where the load balancer will be created"
   type        = string
   default     = "us-central1"
 }
 
-variable "proxy_name" {
-  description = "The name of the HTTP proxy"
-  type        = string
-}
-
-variable "url_map" {
-  description = "The URL map to associate with the proxy"
-  type        = string
-}
-
-variable "forwarding_rule_name" {
-  description = "The name of the forwarding rule"
+variable "backend_service_self_link" {
+  description = "The backend service self link"
   type        = string
 }

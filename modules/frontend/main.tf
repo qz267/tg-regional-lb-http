@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
+resource "google_compute_region_url_map" "default" {
+  name            = "${var.name}-region-url-map"
+  region          = var.region
+  default_service = var.backend_service_self_link
+}
+
 resource "google_compute_region_target_http_proxy" "default" {
-  name    = var.proxy_name
+  name    = "${var.name}-region-http-proxy"
   region  = var.region
-  url_map = var.url_map
+  url_map = google_compute_region_url_map.default.self_link
 }
 
 resource "google_compute_forwarding_rule" "default" {
-  name       = var.forwarding_rule_name
+  name       = "${var.name}-forwarding-rule"
   target     = google_compute_region_target_http_proxy.default.self_link
   region     = var.region
   port_range = "80"
