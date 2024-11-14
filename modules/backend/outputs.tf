@@ -23,3 +23,8 @@ output "health_check_name" {
   description = "The name of the health check"
   value       = google_compute_health_check.default.name
 }
+
+output "backend_service_self_link" {
+  description = "The self_link of the backend service"
+  value       = google_compute_region_backend_service.default.self_link
+}
