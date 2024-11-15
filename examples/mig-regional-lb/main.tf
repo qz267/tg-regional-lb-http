@@ -44,5 +44,6 @@ module "backend" {
 module "frontend" {
   source                    = "../../modules/frontend"
   name                      = "test-regional-lb-frontend"
+  project_id                = var.project_id
   backend_service_self_link = module.backend.backend_service_self_link
 }

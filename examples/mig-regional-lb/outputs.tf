@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-output "forwarding_rule_ip" {
+output "external_ip" {
   description = "The IP address of the forwarding rule"
-  value       = module.frontend.forwarding_rule_ip
+  value       = module.frontend.external_ip
 }
 
 output "backend_service_name" {

@@ -78,12 +78,6 @@ variable "certificate" {
   default     = null
 }
 
-variable "certificate_map" {
-  description = "Certificate Map ID in format projects/{project}/locations/global/certificateMaps/{name}. Identifies a certificate map associated with the given target proxy.  Requires `ssl` to be set to `true`"
-  type        = string
-  default     = null
-}
-
 variable "ssl_policy" {
   type        = string
   description = "Selfink to SSL Policy"

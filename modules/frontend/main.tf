@@ -14,6 +14,40 @@
  * limitations under the License.
  */
 
+
+locals {
+  is_internal = var.load_balancing_scheme == "INTERNAL_SELF_MANAGED"
+  address     = var.create_address ? join("", google_compute_address.default[*].address) : var.address
+
+}
+
+### IPv4 ###
+resource "google_compute_forwarding_rule" "default" {
+  provider   = google-beta
+  project    = var.project_id
+  name       = "${var.name}-forwarding-rule-http"
+  target     = google_compute_region_target_http_proxy.default.self_link
+  region     = var.region
+  port_range = "80"
+}
+
+resource "google_compute_forwarding_rule" "https" {
+  name       = "${var.name}-forwarding-rule-https"
+  target     = google_compute_region_target_https_proxy.default.self_link
+  region     = var.region
+  port_range = "443"
+}
+
+resource "google_compute_address" "default" {
+  provider   = google-beta
+  region     = var.region
+  count      = local.is_internal ? 0 : var.create_address ? 1 : 0
+  project    = var.project_id
+  name       = "${var.name}-address"
+  ip_version = "IPV4"
+  labels     = var.labels
+}
+
 resource "google_compute_region_url_map" "default" {
   name            = "${var.name}-region-url-map"
   region          = var.region
@@ -31,19 +65,5 @@ resource "google_compute_region_target_https_proxy" "default" {
   region           = var.region
   url_map          = google_compute_region_url_map.default.self_link
   ssl_certificates = [var.ssl_certificate]
-}
-
-resource "google_compute_forwarding_rule" "default" {
-  name       = "${var.name}-forwarding-rule-http"
-  target     = google_compute_region_target_http_proxy.default.self_link
-  region     = var.region
-  port_range = "80"
-}
-
-resource "google_compute_forwarding_rule" "https" {
-  name       = "${var.name}-forwarding-rule-https"
-  target     = google_compute_region_target_https_proxy.default.self_link
-  region     = var.region
-  port_range = "443"
 }
 
