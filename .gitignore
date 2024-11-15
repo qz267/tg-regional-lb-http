@@ -1,8 +1,10 @@
 **/terraform.tfstate*
-**/.terraform*
 **/backend.tf
 **/terraform.tfplan
 **/values-*.yaml
+
+# Local .terraform directories
+**/.terraform/*
 
 .idea
 .kitchen
