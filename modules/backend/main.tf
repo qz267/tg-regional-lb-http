@@ -15,7 +15,7 @@
  */
 
 resource "google_compute_health_check" "default" {
-  name                = var.health_check_name
+  name                = "${var.backend_service_name}-hc"
   check_interval_sec  = var.check_interval_sec
   timeout_sec         = var.timeout_sec
   healthy_threshold   = var.healthy_threshold

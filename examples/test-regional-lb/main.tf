@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-provider "google" {
-  project = var.project_id
-  region  = var.region
+resource "google_compute_network" "default" {
+  name                    = "test-regional-lb-network"
+  auto_create_subnetworks = "false"
+}
+
+resource "google_compute_subnetwork" "default" {
+  name                     = "test-regional-lb-subnetwork"
+  ip_cidr_range            = "10.126.0.0/20"
+  network                  = google_compute_network.default.self_link
+  region                   = var.region
+  private_ip_google_access = true
 }
 
 module "backend" {
@@ -25,12 +33,12 @@ module "backend" {
   instance_group       = google_compute_region_instance_group_manager.default.instance_group
   project_id           = var.project_id
   region               = var.region
-  health_check_name    = "test-health-check"
+  target_tags          = ["test-regional-lb-subnetwork"]
 }
 
 module "frontend" {
   source                    = "../../modules/frontend"
-  name                      = "test-regional-lb"
+  name                      = "test-regional-lb-frontend"
   backend_service_self_link = module.backend.backend_service_self_link
 }
 
