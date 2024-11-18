@@ -29,11 +29,6 @@ variable "region" {
   type        = string
 }
 
-variable "health_check_name" {
-  description = "The name of the health check"
-  type        = string
-}
-
 variable "instance_group" {
   description = "The instance group used for the backend service"
   type        = string

@@ -19,10 +19,39 @@ variable "name" {
   type        = string
 }
 
+variable "project_id" {
+  description = "The project to deploy to, if not set the default provider project is used."
+  type        = string
+}
+
 variable "region" {
   description = "The region where the load balancer will be created"
   type        = string
   default     = "us-central1"
+}
+
+variable "create_address" {
+  type        = bool
+  description = "Create a new global IPv4 address"
+  default     = true
+}
+
+variable "address" {
+  type        = string
+  description = "Existing IPv4 address to use (the actual IP address value)"
+  default     = null
+}
+
+variable "labels" {
+  description = "The labels to attach to resources created by this module"
+  type        = map(string)
+  default     = {}
+}
+
+variable "load_balancing_scheme" {
+  description = "Load balancing scheme type (EXTERNAL for classic external load balancer, EXTERNAL_MANAGED for Envoy-based load balancer, and INTERNAL_SELF_MANAGED for traffic director)"
+  type        = string
+  default     = "EXTERNAL_MANAGED"
 }
 
 variable "backend_service_self_link" {
