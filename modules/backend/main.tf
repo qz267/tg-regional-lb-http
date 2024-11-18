@@ -15,7 +15,7 @@
  */
 
 resource "google_compute_health_check" "default" {
-  name                = "${var.backend_service_name}-hc"
+  name                = "${var.name}-hc"
   check_interval_sec  = var.check_interval_sec
   timeout_sec         = var.timeout_sec
   healthy_threshold   = var.healthy_threshold
@@ -27,7 +27,7 @@ resource "google_compute_health_check" "default" {
 }
 
 resource "google_compute_region_backend_service" "default" {
-  name          = var.backend_service_name
+  name          = var.name
   region        = var.region
   protocol      = "HTTP"
   timeout_sec   = 10
@@ -40,17 +40,14 @@ resource "google_compute_region_backend_service" "default" {
 resource "google_compute_firewall" "default_hc" {
   count   = var.health_check != null ? length(var.firewall_networks) : 0
   project = length(var.firewall_networks) == 1 && var.firewall_projects[0] == "default" ? var.project_id : var.firewall_projects[count.index]
-  name    = "${var.backend_service_name}-hc-${count.index}"
+  name    = "${var.name}-hc-${count.index}"
   network = var.firewall_networks[count.index]
   source_ranges = [
     "130.211.0.0/22",
     "35.191.0.0/16"
   ]
-
   target_tags             = length(var.target_tags) > 0 ? var.target_tags : null
   target_service_accounts = length(var.target_service_accounts) > 0 ? var.target_service_accounts : null
-
-
   allow {
     protocol = "tcp"
     ports    = [var.health_check_port]
@@ -59,7 +56,7 @@ resource "google_compute_firewall" "default_hc" {
 
 resource "google_compute_region_network_endpoint_group" "serverless_negs" {
   for_each = { for serverless_neg_backend in var.serverless_neg_backends :
-  "neg-${var.backend_service_name}-${serverless_neg_backend.region}" => serverless_neg_backend }
+  "neg-${var.name}-${serverless_neg_backend.region}" => serverless_neg_backend }
 
 
   provider              = google-beta

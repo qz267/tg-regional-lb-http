@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-variable "backend_service_name" {
-  description = "The name of the backend service"
+variable "name" {
+  description = "Name for the backend service."
   type        = string
 }
 
@@ -31,7 +31,7 @@ variable "region" {
 
 variable "instance_group" {
   description = "The instance group used for the backend service"
-  type        = string
+  type        = 
 }
 
 variable "check_interval_sec" {
