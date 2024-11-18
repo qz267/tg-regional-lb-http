@@ -21,5 +21,5 @@ output "external_ip" {
 
 output "backend_service_name" {
   description = "The name of the backend service"
-  value       = module.backend.backend_service_name
+  value       = module.regional-lb-http-backend.backend_service_name
 }

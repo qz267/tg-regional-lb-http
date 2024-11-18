@@ -32,18 +32,33 @@ resource "google_compute_subnetwork" "default" {
   private_ip_google_access = true
 }
 
-module "backend" {
-  source               = "../../modules/backend"
-  backend_service_name = "test-backend-service"
-  instance_group       = module.mig.instance_group
-  project_id           = var.project_id
-  region               = var.region
-  target_tags          = ["test-regional-lb-subnetwork"]
+module "regional-lb-http-backend" {
+  source            = "../../modules/backend"
+  name              = "test-backend-service"
+  region            = var.region
+  project_id        = var.project_id
+  target_tags       = ["test-regional-lb-subnetwork"]
+  firewall_networks = [google_compute_network.default.name]
+  protocol          = "HTTP"
+  port_name         = "http"
+  timeout_sec       = 10
+  enable_cdn        = false
+
+  health_check = {
+    request_path = "/"
+    port         = 80
+  }
+
+  groups = [
+    {
+      group = module.mig.instance_group
+    },
+  ]
 }
 
 module "frontend" {
   source                    = "../../modules/frontend"
   name                      = "test-regional-lb-frontend"
   project_id                = var.project_id
-  backend_service_self_link = module.backend.backend_service_self_link
+  backend_service_self_link = module.regional-lb-http-backend.backend_service_self_link
 }
