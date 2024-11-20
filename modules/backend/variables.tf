@@ -24,11 +24,6 @@ variable "project_id" {
   type        = string
 }
 
-variable "region" {
-  description = "The region for the backend service"
-  type        = string
-}
-
 variable "load_balancing_scheme" {
   description = "Load balancing scheme type (EXTERNAL for classic external load balancer, EXTERNAL_MANAGED for Envoy-based load balancer, and INTERNAL_SELF_MANAGED for traffic director)"
   type        = string
@@ -95,12 +90,6 @@ variable "timeout_sec" {
   default     = null
 }
 
-variable "check_interval_sec" {
-  description = "Interval in seconds between health checks"
-  type        = number
-  default     = 5
-}
-
 variable "health_check" {
   description = "Input for creating HttpHealthCheck or HttpsHealthCheck resource for health checking this BackendService. A health check must be specified unless the backend service uses an internet or serverless NEG as a backend."
   type = object({
@@ -120,24 +109,6 @@ variable "health_check" {
     logging             = optional(bool, false)
   })
   default = null
-}
-
-variable "healthy_threshold" {
-  description = "Number of consecutive successes required to mark an instance as healthy"
-  type        = number
-  default     = 2
-}
-
-variable "unhealthy_threshold" {
-  description = "Number of consecutive failures required to mark an instance as unhealthy"
-  type        = number
-  default     = 2
-}
-
-variable "health_check_port" {
-  description = "Port for the health check"
-  type        = number
-  default     = 80
 }
 
 variable "firewall_networks" {
@@ -192,4 +163,13 @@ variable "groups" {
     max_utilization              = optional(number)
   }))
   default = []
+}
+
+variable "host_path_mappings" {
+  description = "The list of host/path for which traffic could be sent to the backend service"
+  type = list(object({
+    host = string
+    path = string
+  }))
+  default = [{ host : "*", path : "/*" }]
 }

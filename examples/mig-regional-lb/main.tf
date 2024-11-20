@@ -32,10 +32,9 @@ resource "google_compute_subnetwork" "default" {
   private_ip_google_access = true
 }
 
-module "regional-lb-http-backend" {
+module "lb-http-backend" {
   source            = "../../modules/backend"
   name              = "test-backend-service"
-  region            = var.region
   project_id        = var.project_id
   target_tags       = ["test-regional-lb-subnetwork"]
   firewall_networks = [google_compute_network.default.name]
@@ -57,8 +56,8 @@ module "regional-lb-http-backend" {
 }
 
 module "frontend" {
-  source                    = "../../modules/frontend"
-  name                      = "test-regional-lb-frontend"
-  project_id                = var.project_id
-  backend_service_self_link = module.regional-lb-http-backend.backend_service_self_link
+  source        = "../../modules/frontend"
+  project_id    = var.project_id
+  name          = "test-regional-lb-frontend"
+  url_map_input = module.lb-http-backend.backend_service_info
 }

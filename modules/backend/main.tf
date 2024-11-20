@@ -15,12 +15,11 @@
  */
 
 
-resource "google_compute_region_backend_service" "default" {
+resource "google_compute_backend_service" "default" {
   provider = google-beta
 
   project = var.project_id
   name    = var.name
-  region  = var.region
 
   load_balancing_scheme = var.load_balancing_scheme
 
@@ -36,7 +35,8 @@ resource "google_compute_region_backend_service" "default" {
   security_policy                 = var.security_policy
   timeout_sec                     = var.timeout_sec
 
-  health_checks = [google_compute_health_check.default.self_link]
+  health_checks = var.health_check != null ? google_compute_health_check.default[*].self_link : null
+
 
   dynamic "backend" {
     for_each = toset(var.groups)
@@ -65,14 +65,14 @@ resource "google_compute_region_backend_service" "default" {
 }
 
 resource "google_compute_health_check" "default" {
-  name                = "${var.name}-hc"
-  check_interval_sec  = var.check_interval_sec
-  timeout_sec         = var.timeout_sec
-  healthy_threshold   = var.healthy_threshold
-  unhealthy_threshold = var.unhealthy_threshold
+  name                = "${var.name}-region-hc"
+  check_interval_sec  = var.health_check.check_interval_sec
+  timeout_sec         = var.health_check.timeout_sec
+  healthy_threshold   = var.health_check.healthy_threshold
+  unhealthy_threshold = var.health_check.unhealthy_threshold
 
   http_health_check {
-    port = var.health_check_port
+    port = var.health_check.port
   }
 }
 
@@ -89,7 +89,7 @@ resource "google_compute_firewall" "default_hc" {
   target_service_accounts = length(var.target_service_accounts) > 0 ? var.target_service_accounts : null
   allow {
     protocol = "tcp"
-    ports    = [var.health_check_port]
+    ports    = [var.health_check.port]
   }
 }
 

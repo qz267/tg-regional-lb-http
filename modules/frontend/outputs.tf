@@ -32,10 +32,10 @@ output "https_proxy" {
 
 output "url_map" {
   description = "The default URL map used by this module."
-  value       = google_compute_region_url_map.default[*].self_link
+  value       = google_compute_url_map.default[*].self_link
 }
 
 output "ssl_certificate_created" {
   description = "The SSL certificate create from key/pem"
-  value       = var.ssl_certificate
+  value       = google_compute_ssl_certificate.default[*].self_link
 }
