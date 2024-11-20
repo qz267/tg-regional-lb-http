@@ -14,36 +14,11 @@
  * limitations under the License.
  */
 
-module "project-ci-lb-http" {
+module "project-ci-regional-lb-http" {
   source  = "terraform-google-modules/project-factory/google"
   version = "~> 17.0"
 
   name                        = "ci-int-lb-http"
-  random_project_id           = true
-  org_id                      = var.org_id
-  folder_id                   = var.folder_id
-  billing_account             = var.billing_account
-  default_service_account     = "keep"
-  disable_dependent_services  = false
-  disable_services_on_destroy = false
-  deletion_policy             = "DELETE"
-
-  activate_apis = [
-    "cloudresourcemanager.googleapis.com",
-    "storage-api.googleapis.com",
-    "serviceusage.googleapis.com",
-    "compute.googleapis.com",
-    "run.googleapis.com",
-    "iam.googleapis.com",
-    "certificatemanager.googleapis.com",
-  ]
-}
-
-module "project-ci-lb-http-1" {
-  source  = "terraform-google-modules/project-factory/google"
-  version = "~> 17.0"
-
-  name                        = "ci-int-lb-http-1"
   random_project_id           = true
   org_id                      = var.org_id
   folder_id                   = var.folder_id

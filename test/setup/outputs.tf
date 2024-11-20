@@ -15,7 +15,7 @@
  */
 
 output "project_id" {
-  value = module.project-ci-lb-http.project_id
+  value = module.project-ci-regional-lb-http.project_id
 }
 
 output "sa_key" {

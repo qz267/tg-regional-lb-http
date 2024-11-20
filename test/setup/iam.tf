@@ -25,7 +25,7 @@ locals {
 }
 
 resource "google_service_account" "int_test" {
-  project      = module.project-ci-lb-http.project_id
+  project      = module.project-ci-regional-lb-http.project_id
   account_id   = "ci-int-lb-http"
   display_name = "ci-int-lb-http"
 }
@@ -39,14 +39,7 @@ resource "google_folder_iam_member" "int_test" {
 
 resource "google_project_iam_member" "int_test" {
   count   = length(local.int_required_project_roles)
-  project = module.project-ci-lb-http.project_id
-  role    = local.int_required_project_roles[count.index]
-  member  = "serviceAccount:${google_service_account.int_test.email}"
-}
-
-resource "google_project_iam_member" "int_test_1" {
-  count   = length(local.int_required_project_roles)
-  project = module.project-ci-lb-http-1.project_id
+  project = module.project-ci-regional-lb-http.project_id
   role    = local.int_required_project_roles[count.index]
   member  = "serviceAccount:${google_service_account.int_test.email}"
 }
