@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+provider "google-beta" {
+  project = var.project_id
+}
+
 data "template_file" "group-startup-script" {
   template = file(format("%s/gceme.sh.tpl", path.module))
   vars = {
