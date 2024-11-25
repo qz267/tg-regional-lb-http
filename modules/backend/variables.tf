@@ -107,11 +107,11 @@ variable "health_check" {
     proxy_header        = optional(string, null)
     port_specification  = optional(string, null)
     protocol            = optional(string, null)
-    check_interval_sec  = optional(number, 5)
-    timeout_sec         = optional(number, 5)
+    check_interval_sec  = optional(number, 10)
+    timeout_sec         = optional(number, 10)
     healthy_threshold   = optional(number, 2)
     unhealthy_threshold = optional(number, 2)
-    logging             = optional(bool, false)
+    logging             = optional(bool, true)
   })
   default = null
 }

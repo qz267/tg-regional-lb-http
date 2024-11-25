@@ -40,7 +40,7 @@ resource "google_compute_subnetwork" "proxy_only" {
   role          = "ACTIVE"
 }
 
-module "lb-http-backend" {
+module "region-lb-http-backend" {
   source            = "../../modules/backend"
   name              = "test-backend-service"
   project_id        = var.project_id
@@ -67,11 +67,11 @@ module "lb-http-backend" {
   ]
 }
 
-module "frontend" {
+module "region-lb-http-frontend" {
   source                = "../../modules/frontend"
   project_id            = var.project_id
   name                  = "test-regional-lb-frontend"
-  url_map_input         = module.lb-http-backend.backend_service_info
+  url_map_input         = module.region-lb-http-backend.backend_service_info
   region                = var.region
   load_balancing_scheme = "EXTERNAL_MANAGED"
   network               = google_compute_network.default.name

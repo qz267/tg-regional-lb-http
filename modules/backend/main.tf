@@ -20,7 +20,7 @@ resource "google_compute_region_backend_service" "default" {
 
   project = var.project_id
   region  = var.region
-  name    = var.name
+  name    = "${var.name}-backend-service"
 
   load_balancing_scheme = var.load_balancing_scheme
 
@@ -37,7 +37,6 @@ resource "google_compute_region_backend_service" "default" {
   timeout_sec                     = var.timeout_sec
 
   health_checks = var.health_check != null ? google_compute_region_health_check.default[*].self_link : null
-
 
   dynamic "backend" {
     for_each = toset(var.groups)
@@ -66,15 +65,78 @@ resource "google_compute_region_backend_service" "default" {
 }
 
 resource "google_compute_region_health_check" "default" {
-  name                = "${var.name}-region-hc"
+  provider = google-beta
+  count    = var.health_check != null ? 1 : 0
+  project  = var.project_id
+  name     = "${var.name}-region-hc"
+  region   = var.region
+
   check_interval_sec  = var.health_check.check_interval_sec
   timeout_sec         = var.health_check.timeout_sec
   healthy_threshold   = var.health_check.healthy_threshold
   unhealthy_threshold = var.health_check.unhealthy_threshold
-  region              = var.region
 
-  http_health_check {
-    port = var.health_check.port
+  dynamic "http_health_check" {
+    for_each = coalesce(var.health_check.protocol, var.protocol) == "HTTP" ? [
+      1
+    ] : []
+
+    content {
+      host               = var.health_check.host
+      request_path       = var.health_check.request_path
+      response           = var.health_check.response
+      port               = var.health_check.port
+      port_name          = var.health_check.port_name
+      proxy_header       = var.health_check.proxy_header
+      port_specification = var.health_check.port_specification
+    }
+  }
+
+  dynamic "https_health_check" {
+    for_each = coalesce(var.health_check.protocol, var.protocol) == "HTTPS" ? [
+      1
+    ] : []
+
+    content {
+      host               = var.health_check.host
+      request_path       = var.health_check.request_path
+      response           = var.health_check.response
+      port               = var.health_check.port
+      port_name          = var.health_check.port_name
+      proxy_header       = var.health_check.proxy_header
+      port_specification = var.health_check.port_specification
+    }
+  }
+
+  dynamic "http2_health_check" {
+    for_each = coalesce(var.health_check.protocol, var.protocol) == "HTTP2" ? [
+      1
+    ] : []
+
+    content {
+      host               = var.health_check.host
+      request_path       = var.health_check.request_path
+      response           = var.health_check.response
+      port               = var.health_check.port
+      port_name          = var.health_check.port_name
+      proxy_header       = var.health_check.proxy_header
+      port_specification = var.health_check.port_specification
+    }
+  }
+
+  dynamic "tcp_health_check" {
+    for_each = coalesce(var.health_check.protocol, var.protocol) == "TCP" ? [
+      1
+    ] : []
+
+    content {
+      request            = var.health_check.request
+      response           = var.health_check.response
+      port               = var.health_check.port
+      port_name          = var.health_check.port_name
+      proxy_header       = var.health_check.proxy_header
+      port_specification = var.health_check.port_specification
+    }
   }
 }
 

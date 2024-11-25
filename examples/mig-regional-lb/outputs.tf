@@ -16,5 +16,5 @@
 
 output "external_ip" {
   description = "The IP address of the forwarding rule"
-  value       = module.frontend.external_ip
+  value       = module.region-lb-http-frontend.external_ip
 }
