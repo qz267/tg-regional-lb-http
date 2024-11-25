@@ -15,10 +15,11 @@
  */
 
 
-resource "google_compute_backend_service" "default" {
+resource "google_compute_region_backend_service" "default" {
   provider = google-beta
 
   project = var.project_id
+  region  = var.region
   name    = var.name
 
   load_balancing_scheme = var.load_balancing_scheme
@@ -35,7 +36,7 @@ resource "google_compute_backend_service" "default" {
   security_policy                 = var.security_policy
   timeout_sec                     = var.timeout_sec
 
-  health_checks = var.health_check != null ? google_compute_health_check.default[*].self_link : null
+  health_checks = var.health_check != null ? google_compute_region_health_check.default[*].self_link : null
 
 
   dynamic "backend" {
@@ -64,12 +65,13 @@ resource "google_compute_backend_service" "default" {
   }
 }
 
-resource "google_compute_health_check" "default" {
+resource "google_compute_region_health_check" "default" {
   name                = "${var.name}-region-hc"
   check_interval_sec  = var.health_check.check_interval_sec
   timeout_sec         = var.health_check.timeout_sec
   healthy_threshold   = var.health_check.healthy_threshold
   unhealthy_threshold = var.health_check.unhealthy_threshold
+  region              = var.region
 
   http_health_check {
     port = var.health_check.port

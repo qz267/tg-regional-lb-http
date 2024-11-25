@@ -20,7 +20,7 @@ output "backend_service_info" {
     for mapping in var.host_path_mappings : {
       host            = mapping.host
       path            = mapping.path
-      backend_service = google_compute_backend_service.default.self_link
+      backend_service = google_compute_region_backend_service.default.self_link
     }
   ]
 }

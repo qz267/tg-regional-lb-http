@@ -16,7 +16,7 @@
 
 provider "google" {
   project = var.project_id
-  region  = var.region
+  # region  = var.region
 }
 
 resource "google_compute_network" "default" {
@@ -32,6 +32,15 @@ resource "google_compute_subnetwork" "default" {
   private_ip_google_access = true
 }
 
+resource "google_compute_subnetwork" "proxy_only" {
+  name          = "proxy-only-subnet"
+  ip_cidr_range = "10.129.0.0/23"
+  network       = google_compute_network.default.id
+  purpose       = "REGIONAL_MANAGED_PROXY"
+  region        = var.region
+  role          = "ACTIVE"
+}
+
 module "lb-http-backend" {
   source            = "../../modules/backend"
   name              = "test-backend-service"
@@ -42,6 +51,8 @@ module "lb-http-backend" {
   port_name         = "http"
   timeout_sec       = 10
   enable_cdn        = false
+  region            = var.region
+
 
   health_check = {
     request_path = "/"
@@ -50,14 +61,21 @@ module "lb-http-backend" {
 
   groups = [
     {
-      group = module.mig.instance_group
+      group           = module.mig.instance_group
+      capacity_scaler = 1.0
+      balancing_mode  = "UTILIZATION"
     },
   ]
 }
 
 module "frontend" {
-  source        = "../../modules/frontend"
-  project_id    = var.project_id
-  name          = "test-regional-lb-frontend"
-  url_map_input = module.lb-http-backend.backend_service_info
+  source                = "../../modules/frontend"
+  project_id            = var.project_id
+  name                  = "test-regional-lb-frontend"
+  url_map_input         = module.lb-http-backend.backend_service_info
+  region                = var.region
+  load_balancing_scheme = "EXTERNAL_MANAGED"
+  network               = google_compute_network.default.name
+  # depends_on = [google_compute_subnetwork.proxy_only]
+
 }
