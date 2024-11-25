@@ -21,6 +21,9 @@ locals {
   internal_network = local.is_internal ? var.network : null
 
 
+  url_map             = var.create_url_map ? join("", google_compute_region_url_map.default[*].self_link) : var.url_map_resource_uri
+  create_http_forward = var.http_forward || var.https_redirect
+
   # Create a map with hosts as keys and empty lists as initial values
   hosts = toset([for service in var.url_map_input : service.host])
   backend_services_by_host = {
@@ -122,5 +125,3 @@ resource "google_compute_managed_ssl_certificate" "default" {
     domains = var.managed_ssl_certificate_domains
   }
 }
-
-
