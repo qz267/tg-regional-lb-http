@@ -105,3 +105,9 @@ variable "url_map_input" {
   }))
   default = []
 }
+
+variable "network" {
+  description = "Network for INTERNAL_SELF_MANAGED load balancing scheme"
+  type        = string
+  default     = "default"
+}

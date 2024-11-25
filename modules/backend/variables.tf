@@ -24,10 +24,15 @@ variable "project_id" {
   type        = string
 }
 
+variable "region" {
+  description = "The region where the load balancer backend service will be created"
+  type        = string
+}
+
 variable "load_balancing_scheme" {
   description = "Load balancing scheme type (EXTERNAL for classic external load balancer, EXTERNAL_MANAGED for Envoy-based load balancer, and INTERNAL_SELF_MANAGED for traffic director)"
   type        = string
-  default     = "EXTERNAL"
+  default     = "EXTERNAL_MANAGED"
 }
 
 variable "protocol" {
