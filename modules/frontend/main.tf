@@ -16,13 +16,13 @@
 
 
 locals {
-  is_internal      = var.load_balancing_scheme == "INTERNAL_SELF_MANAGED"
-  address          = var.create_address ? join("", google_compute_address.default[*].address) : var.address
-  internal_network = local.is_internal ? var.network : null
+  is_internal = var.load_balancing_scheme == "INTERNAL_SELF_MANAGED"
+  address     = var.create_address ? join("", google_compute_address.default[*].address) : var.address
+  #internal_network = local.is_internal ? var.network : null
 
 
-  url_map             = var.create_url_map ? join("", google_compute_region_url_map.default[*].self_link) : var.url_map_resource_uri
-  create_http_forward = var.http_forward || var.https_redirect
+  #url_map             = var.create_url_map ? join("", google_compute_region_url_map.default[*].self_link) : var.url_map_resource_uri
+  #create_http_forward = var.http_forward || var.https_redirect
 
   # Create a map with hosts as keys and empty lists as initial values
   hosts = toset([for service in var.url_map_input : service.host])

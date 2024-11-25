@@ -18,7 +18,7 @@ module "project-ci-regional-lb-http" {
   source  = "terraform-google-modules/project-factory/google"
   version = "~> 17.0"
 
-  name                        = "ci-int-lb-http"
+  name                        = "ci-int-regional-lb-http"
   random_project_id           = true
   org_id                      = var.org_id
   folder_id                   = var.folder_id

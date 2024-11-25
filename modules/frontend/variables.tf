@@ -96,12 +96,6 @@ variable "random_certificate_suffix" {
   default     = false
 }
 
-variable "create_url_map" {
-  description = "Set to `false` if url_map variable is provided."
-  type        = bool
-  default     = true
-}
-
 variable "url_map_input" {
   description = "List of host, path and backend service for creating url_map"
   type = list(object({
