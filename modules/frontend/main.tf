@@ -18,11 +18,6 @@
 locals {
   is_internal = var.load_balancing_scheme == "INTERNAL_SELF_MANAGED"
   address     = var.create_address ? join("", google_compute_address.default[*].address) : var.address
-  #internal_network = local.is_internal ? var.network : null
-
-
-  #url_map             = var.create_url_map ? join("", google_compute_region_url_map.default[*].self_link) : var.url_map_resource_uri
-  #create_http_forward = var.http_forward || var.https_redirect
 
   # Create a map with hosts as keys and empty lists as initial values
   hosts = toset([for service in var.url_map_input : service.host])
@@ -41,12 +36,13 @@ resource "google_compute_forwarding_rule" "default" {
   project               = var.project_id
   region                = var.region
   name                  = "${var.name}-forwarding-rule-http"
-  target                = google_compute_region_target_http_proxy.default.self_link
-  port_range            = "80"
-  ip_address            = local.address
-  load_balancing_scheme = var.load_balancing_scheme
+  target                = google_compute_region_target_http_proxy.default.id
+  ip_address            = google_compute_address.default.id
   ip_protocol           = "TCP"
+  load_balancing_scheme = var.load_balancing_scheme
+  port_range            = "80"
   network               = var.network
+  network_tier          = "STANDARD"
 }
 
 resource "google_compute_forwarding_rule" "https" {
@@ -60,32 +56,31 @@ resource "google_compute_forwarding_rule" "https" {
 resource "google_compute_address" "default" {
   provider     = google-beta
   region       = var.region
-  count        = local.is_internal ? 0 : var.create_address ? 1 : 0
   project      = var.project_id
   name         = "${var.name}-address"
   ip_version   = "IPV4"
   labels       = var.labels
-  network_tier = "PREMIUM"
+  network_tier = "STANDARD"
   address_type = "EXTERNAL"
 }
 
 resource "google_compute_region_url_map" "default" {
   name            = "${var.name}-url-map-default"
-  default_service = local.backend_services_by_host["*"]["/*"]
   region          = var.region
+  default_service = var.backend_service_default_id
 }
 
 resource "google_compute_region_target_http_proxy" "default" {
   name    = "${var.name}-region-http-proxy"
   region  = var.region
-  url_map = google_compute_region_url_map.default.self_link
+  url_map = google_compute_region_url_map.default.id
 }
 
 resource "google_compute_region_target_https_proxy" "default" {
   count            = var.ssl ? 1 : 0
   name             = "${var.name}-region-https-proxy"
   region           = var.region
-  url_map          = google_compute_region_url_map.default.self_link
+  url_map          = google_compute_region_url_map.default.id
   ssl_certificates = compact(concat(var.ssl_certificates, google_compute_ssl_certificate.default[*].self_link, google_compute_managed_ssl_certificate.default[*].self_link, ), )
 }
 

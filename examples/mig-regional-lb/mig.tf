@@ -26,32 +26,52 @@ data "template_file" "group-startup-script" {
 }
 
 module "mig_template" {
-  source     = "terraform-google-modules/vm/google//modules/instance_template"
-  version    = "~> 12.0"
-  network    = google_compute_network.default.self_link
-  subnetwork = google_compute_subnetwork.default.self_link
+  source      = "terraform-google-modules/vm/google//modules/instance_template"
+  version     = "~> 12.0"
+  name_prefix = "test-regional-lb-mig"
+  region      = var.region
+
+  network      = google_compute_network.default.self_link
+  subnetwork   = google_compute_subnetwork.default.self_link
+
+  labels = {
+    managed-by-cnrm = "true"
+  }
+  metadata = {
+    startup-script = <<EOF
+    #! /bin/bash
+    sudo apt-get update
+    sudo apt-get install apache2 -y
+    sudo a2ensite default-ssl
+    sudo a2enmod ssl
+    vm_hostname="$(curl -H "Metadata-Flavor:Google" \
+    http://169.254.169.254/computeMetadata/v1/instance/name)"
+    sudo echo "Page served from: $vm_hostname" | \
+    tee /var/www/html/index.html
+    sudo systemctl restart apache2
+    EOF
+  }
   service_account = {
     email  = ""
     scopes = ["cloud-platform"]
   }
-  name_prefix          = "test-regional-lb-mig"
-  startup_script       = data.template_file.group-startup-script.rendered
+  #startup_script       = data.template_file.group-startup-script.rendered
   source_image_family  = "ubuntu-2004-lts"
   source_image_project = "ubuntu-os-cloud"
-  tags = [
-    "test-regional-lb-mig",
-  ]
+  tags                 = ["load-balanced-backend"]
 }
 
-module "mig" {
-  hostname          = "test-regional-lb-mig"
-  source            = "terraform-google-modules/vm/google//modules/mig"
-  version           = "~> 12.0"
-  instance_template = module.mig_template.self_link
-  region            = var.region
-  target_size       = 3
-  named_ports = [{
-    name = "http",
+resource "google_compute_instance_group_manager" "default" {
+  name = "lb-backend-example"
+  zone = "${var.region}-a"
+  named_port {
+    name = "http"
     port = 80
-  }]
+  }
+  version {
+    instance_template = module.mig_template.self_link
+    name              = "primary"
+  }
+  base_instance_name = "vm"
+  target_size        = 3
 }

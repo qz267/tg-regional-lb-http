@@ -157,7 +157,7 @@ variable "groups" {
     group       = string
     description = optional(string)
 
-    balancing_mode               = optional(string)
+    balancing_mode               = optional(string, "UTILIZATION")
     capacity_scaler              = optional(number)
     max_connections              = optional(number)
     max_connections_per_instance = optional(number)

@@ -106,6 +106,11 @@ variable "url_map_input" {
   default = []
 }
 
+variable "backend_service_default_id" {
+  description = "backend service default id"
+  type        = string
+}
+
 variable "network" {
   description = "Network for INTERNAL_SELF_MANAGED load balancing scheme"
   type        = string

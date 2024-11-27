@@ -19,19 +19,24 @@ provider "google" {
 }
 
 resource "google_compute_network" "default" {
-  name                    = "test-regional-lb-network"
+  name                    = "lb-network"
   auto_create_subnetworks = "false"
+  routing_mode            = "REGIONAL"
 }
 
 resource "google_compute_subnetwork" "default" {
-  name                     = "test-regional-lb-subnetwork"
-  ip_cidr_range            = "10.126.0.0/20"
-  network                  = google_compute_network.default.self_link
+  name                     = "backend-subnet"
+  ip_cidr_range            = "10.1.2.0/24"
+  network                  = google_compute_network.default.id
   region                   = var.region
   private_ip_google_access = true
+
+  private_ipv6_google_access = "DISABLE_GOOGLE_ACCESS"
+  purpose                    = "PRIVATE"
+  stack_type                 = "IPV4_ONLY"
 }
 
-resource "google_compute_subnetwork" "proxy_only" {
+resource "google_compute_subnetwork" "proxy-only" {
   name          = "proxy-only-subnet"
   ip_cidr_range = "10.129.0.0/23"
   network       = google_compute_network.default.id
@@ -44,7 +49,7 @@ module "region-lb-http-backend" {
   source            = "../../modules/backend"
   name              = "test-backend-service"
   project_id        = var.project_id
-  target_tags       = ["test-regional-lb-subnetwork"]
+  target_tags       = ["load-balanced-backend"]
   firewall_networks = [google_compute_network.default.name]
   protocol          = "HTTP"
   port_name         = "http"
@@ -60,7 +65,7 @@ module "region-lb-http-backend" {
 
   groups = [
     {
-      group           = module.mig.instance_group
+      group           = google_compute_instance_group_manager.default.instance_group
       capacity_scaler = 1.0
       balancing_mode  = "UTILIZATION"
     },
@@ -74,7 +79,7 @@ module "region-lb-http-frontend" {
   url_map_input         = module.region-lb-http-backend.backend_service_info
   region                = var.region
   load_balancing_scheme = "EXTERNAL_MANAGED"
-  network               = google_compute_network.default.name
-  # depends_on = [google_compute_subnetwork.proxy_only]
+  network               = google_compute_network.default.id
 
+  backend_service_default_id = module.region-lb-http-backend.backend_service_default_id
 }

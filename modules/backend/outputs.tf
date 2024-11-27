@@ -24,3 +24,8 @@ output "backend_service_info" {
     }
   ]
 }
+
+output "backend_service_default_id" {
+  description = "backend service id"
+  value = google_compute_region_backend_service.default.id
+}
