@@ -16,7 +16,6 @@
 
 provider "google" {
   project = var.project_id
-  region  = var.region
 }
 
 resource "google_compute_network" "default" {
@@ -32,18 +31,50 @@ resource "google_compute_subnetwork" "default" {
   private_ip_google_access = true
 }
 
-module "backend" {
-  source               = "../../modules/backend"
-  backend_service_name = "test-backend-service"
-  instance_group       = module.mig.instance_group
-  project_id           = var.project_id
-  region               = var.region
-  target_tags          = ["test-regional-lb-subnetwork"]
+resource "google_compute_subnetwork" "proxy_only" {
+  name          = "proxy-only-subnet"
+  ip_cidr_range = "10.129.0.0/23"
+  network       = google_compute_network.default.id
+  purpose       = "REGIONAL_MANAGED_PROXY"
+  region        = var.region
+  role          = "ACTIVE"
 }
 
-module "frontend" {
-  source                    = "../../modules/frontend"
-  name                      = "test-regional-lb-frontend"
-  project_id                = var.project_id
-  backend_service_self_link = module.backend.backend_service_self_link
+module "region-lb-http-backend" {
+  source            = "../../modules/backend"
+  name              = "test-backend-service"
+  project_id        = var.project_id
+  target_tags       = ["test-regional-lb-subnetwork"]
+  firewall_networks = [google_compute_network.default.name]
+  protocol          = "HTTP"
+  port_name         = "http"
+  timeout_sec       = 10
+  enable_cdn        = false
+  region            = var.region
+
+
+  health_check = {
+    request_path = "/"
+    port         = 80
+  }
+
+  groups = [
+    {
+      group           = module.mig.instance_group
+      capacity_scaler = 1.0
+      balancing_mode  = "UTILIZATION"
+    },
+  ]
+}
+
+module "region-lb-http-frontend" {
+  source                = "../../modules/frontend"
+  project_id            = var.project_id
+  name                  = "test-regional-lb-frontend"
+  url_map_input         = module.region-lb-http-backend.backend_service_info
+  region                = var.region
+  load_balancing_scheme = "EXTERNAL_MANAGED"
+  network               = google_compute_network.default.name
+  # depends_on = [google_compute_subnetwork.proxy_only]
+
 }

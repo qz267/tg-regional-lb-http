@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 
-output "external_ip" {
-  description = "The IP address of the forwarding rule"
-  value       = module.region-lb-http-frontend.external_ip
+terraform {
+  required_version = ">= 1.3"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 3.32"
+    }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = ">= 4.40"
+    }
+  }
 }

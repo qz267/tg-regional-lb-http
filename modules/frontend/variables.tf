@@ -54,13 +54,60 @@ variable "load_balancing_scheme" {
   default     = "EXTERNAL_MANAGED"
 }
 
-variable "backend_service_self_link" {
-  description = "The backend service self link"
-  type        = string
+variable "ssl" {
+  description = "Set to `true` to enable SSL support. If `true` then at least one of these are required: 1) `ssl_certificates` OR 2) `create_ssl_certificate` set to `true` and `private_key/certificate` OR  3) `managed_ssl_certificate_domains`, OR 4) `certificate_map`"
+  type        = bool
+  default     = false
 }
 
-variable "ssl_certificate" {
-  description = "SSL cert self_link list."
+variable "create_ssl_certificate" {
+  description = "If `true`, Create certificate using `private_key/certificate`"
+  type        = bool
+  default     = false
+}
+
+variable "private_key" {
+  description = "Content of the private SSL key. Requires `ssl` to be set to `true` and `create_ssl_certificate` set to `true`"
   type        = string
-  default     = ""
+  default     = null
+}
+
+variable "certificate" {
+  description = "Content of the SSL certificate. Requires `ssl` to be set to `true` and `create_ssl_certificate` set to `true`"
+  type        = string
+  default     = null
+}
+
+variable "ssl_certificates" {
+  description = "SSL cert self_link list. Requires `ssl` to be set to `true`"
+  type        = list(string)
+  default     = []
+}
+
+variable "managed_ssl_certificate_domains" {
+  description = "Create Google-managed SSL certificates for specified domains. Requires `ssl` to be set to `true`"
+  type        = list(string)
+  default     = []
+}
+
+variable "random_certificate_suffix" {
+  description = "Bool to enable/disable random certificate name generation. Set and keep this to true if you need to change the SSL cert."
+  type        = bool
+  default     = false
+}
+
+variable "url_map_input" {
+  description = "List of host, path and backend service for creating url_map"
+  type = list(object({
+    host            = string
+    path            = string
+    backend_service = string
+  }))
+  default = []
+}
+
+variable "network" {
+  description = "Network for INTERNAL_SELF_MANAGED load balancing scheme"
+  type        = string
+  default     = "default"
 }
