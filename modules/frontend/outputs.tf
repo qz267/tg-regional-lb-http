@@ -37,5 +37,5 @@ output "url_map" {
 
 output "ssl_certificate_created" {
   description = "The SSL certificate create from key/pem"
-  value       = var.ssl_certificate
+  value       = google_compute_ssl_certificate.default[*].self_link
 }

@@ -19,28 +19,53 @@ locals {
   is_internal = var.load_balancing_scheme == "INTERNAL_SELF_MANAGED"
   address     = var.create_address ? join("", google_compute_address.default[*].address) : var.address
 
+  url_map             = var.create_url_map ? join("", google_compute_region_url_map.default[*].self_link) : var.url_map_resource_uri
+  create_http_forward = var.http_forward || var.https_redirect
+
+  # Create a map with hosts as keys and empty lists as initial values
+  hosts = toset([for service in var.url_map_input : service.host])
+  backend_services_by_host = {
+    for host in local.hosts :
+    host => {
+      for s in var.url_map_input :
+      s.path => s.backend_service if s.host == host
+    }
+  }
+
+  # Find a backend service to be used for url_map in absence of host "*" and path "/*"
+  first_host            = keys(local.backend_services_by_host)[0]
+  first_path            = keys(local.backend_services_by_host[local.first_host])[0]
+  first_backend_service = local.backend_services_by_host[local.first_host][local.first_path]
 }
 
 ### IPv4 ###
 resource "google_compute_forwarding_rule" "default" {
-  provider   = google-beta
-  project    = var.project_id
-  name       = "${var.name}-forwarding-rule-http"
-  target     = google_compute_region_target_http_proxy.default.self_link
-  region     = var.region
-  port_range = "80"
+  provider              = google-beta
+  project               = var.project_id
+  region                = var.region
+  name                  = "${var.name}-forwarding-rule-http"
+  target                = google_compute_region_target_http_proxy.default[0].self_link
+  port_range            = var.http_port
+  ip_address            = local.address
+  load_balancing_scheme = var.load_balancing_scheme
+  labels                = var.labels
+  network               = var.network
 }
 
 resource "google_compute_forwarding_rule" "https" {
-  name       = "${var.name}-forwarding-rule-https"
-  target     = google_compute_region_target_https_proxy.default.self_link
-  region     = var.region
-  port_range = "443"
+  name                  = "${var.name}-forwarding-rule-https"
+  project               = var.project_id
+  count                 = var.ssl ? 1 : 0
+  target                = google_compute_region_target_https_proxy.default[0].self_link
+  port_range            = var.https_port
+  load_balancing_scheme = var.load_balancing_scheme
+  ip_address            = local.address
+  labels                = var.labels
+  network               = var.network
 }
 
-resource "google_compute_address" "default" {
+resource "google_compute_global_address" "default" {
   provider   = google-beta
-  region     = var.region
   count      = local.is_internal ? 0 : var.create_address ? 1 : 0
   project    = var.project_id
   name       = "${var.name}-address"
@@ -48,22 +73,123 @@ resource "google_compute_address" "default" {
   labels     = var.labels
 }
 
-resource "google_compute_region_url_map" "default" {
-  name            = "${var.name}-region-url-map"
-  region          = var.region
-  default_service = var.backend_service_self_link
+resource "google_compute_address" "default" {
+  provider   = google-beta
+  count      = local.is_internal ? 0 : var.create_address ? 1 : 0
+  project    = var.project_id
+  region     = var.region
+  name       = "${var.name}-address"
+  ip_version = "IPV4"
+  labels     = var.labels
 }
+
+### IPv4 ###
+
+resource "google_compute_region_url_map" "default" {
+  count           = var.create_url_map && length(local.backend_services_by_host) > 0 ? 1 : 0
+  provider        = google-beta
+  project         = var.project_id
+  region          = var.region
+  name            = "${var.name}-url-map"
+  default_service = lookup(lookup(local.backend_services_by_host, "*", {}), "/*", local.first_backend_service)
+
+  dynamic "host_rule" {
+    for_each = local.backend_services_by_host
+    content {
+      hosts        = [host_rule.key]
+      path_matcher = host_rule.key == "*" ? "default" : replace(host_rule.key, ".", "")
+    }
+  }
+
+  dynamic "path_matcher" {
+    for_each = local.backend_services_by_host
+    content {
+      name            = path_matcher.key == "*" ? "default" : replace(path_matcher.key, ".", "")
+      default_service = path_matcher.value[contains(keys(path_matcher.value), "/*") ? "/*" : keys(path_matcher.value)[0]]
+
+      dynamic "path_rule" {
+        for_each = { for k, v in path_matcher.value : k => v if k != "/*" }
+        content {
+          paths   = [path_rule.key]
+          service = path_rule.value
+        }
+      }
+    }
+  }
+}
+
+# resource "google_compute_region_url_map" "default" {
+#   name            = "${var.name}-url-map-default"
+#   default_service = local.backend_services_by_host["*"]["/*"]
+#   region          = var.region
+#   project = var.project_id
+# }
 
 resource "google_compute_region_target_http_proxy" "default" {
-  name    = "${var.name}-region-http-proxy"
+  count   = local.create_http_forward ? 1 : 0
+  name    = "${var.name}-regional-http-proxy"
+  project = var.project_id
   region  = var.region
-  url_map = google_compute_region_url_map.default.self_link
+  url_map = var.https_redirect == false ? local.url_map : join("", google_compute_url_map.https_redirect[*].self_link)
 }
 
+# HTTPS proxy when ssl is true
 resource "google_compute_region_target_https_proxy" "default" {
-  name             = "${var.name}-region-https-proxy"
-  region           = var.region
-  url_map          = google_compute_region_url_map.default.self_link
-  ssl_certificates = [var.ssl_certificate]
+  project                     = var.project_id
+  count                       = var.ssl ? 1 : 0
+  name                        = "${var.name}-regional-https-proxy"
+  region                      = var.region
+  url_map                     = local.url_map
+  ssl_certificates            = compact(concat(var.ssl_certificates, google_compute_ssl_certificate.default[*].self_link, google_compute_managed_ssl_certificate.default[*].self_link, ), )
+  ssl_policy                  = var.ssl_policy
+  server_tls_policy           = var.server_tls_policy
+  http_keep_alive_timeout_sec = var.http_keep_alive_timeout_sec
 }
 
+resource "google_compute_ssl_certificate" "default" {
+  project     = var.project_id
+  count       = var.ssl && var.create_ssl_certificate ? 1 : 0
+  name_prefix = "${var.name}-certificate-"
+  private_key = var.private_key
+  certificate = var.certificate
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "random_id" "certificate" {
+  count       = var.random_certificate_suffix == true ? 1 : 0
+  byte_length = 4
+  prefix      = "${var.name}-cert-"
+
+  keepers = {
+    domains = join(",", var.managed_ssl_certificate_domains)
+  }
+}
+
+resource "google_compute_managed_ssl_certificate" "default" {
+  provider = google-beta
+  project  = var.project_id
+  count    = var.ssl && length(var.managed_ssl_certificate_domains) > 0 ? 1 : 0
+  name     = var.random_certificate_suffix == true ? random_id.certificate[0].hex : "${var.name}-cert"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  managed {
+    domains = var.managed_ssl_certificate_domains
+  }
+}
+
+resource "google_compute_url_map" "https_redirect" {
+  project = var.project_id
+  count   = var.https_redirect ? 1 : 0
+  name    = "${var.name}-https-redirect"
+  default_url_redirect {
+    https_redirect         = true
+    redirect_response_code = "MOVED_PERMANENTLY_DEFAULT"
+    strip_query            = false
+  }
+}
