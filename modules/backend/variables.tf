@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-variable "backend_service_name" {
-  description = "The name of the backend service"
+variable "name" {
+  description = "Name for the backend service."
   type        = string
 }
 
@@ -25,25 +25,74 @@ variable "project_id" {
 }
 
 variable "region" {
-  description = "The region for the backend service"
+  description = "The region where the load balancer backend service will be created"
   type        = string
 }
 
-variable "instance_group" {
-  description = "The instance group used for the backend service"
+variable "load_balancing_scheme" {
+  description = "Load balancing scheme type (EXTERNAL for classic external load balancer, EXTERNAL_MANAGED for Envoy-based load balancer, and INTERNAL_SELF_MANAGED for traffic director)"
   type        = string
+  default     = "EXTERNAL_MANAGED"
 }
 
-variable "check_interval_sec" {
-  description = "Interval in seconds between health checks"
+variable "protocol" {
+  description = "The protocol this BackendService uses to communicate with backends."
+  type        = string
+  default     = "HTTP"
+}
+
+variable "port_name" {
+  description = "Name of backend port. The same name should appear in the instance groups referenced by this service. Required when the load balancing scheme is EXTERNAL."
+  type        = string
+  default     = "http"
+}
+
+variable "description" {
+  description = "Description of the backend service."
+  type        = string
+  default     = null
+}
+
+variable "connection_draining_timeout_sec" {
+  description = "Time for which instance will be drained (not accept new connections, but still work to finish started)."
   type        = number
-  default     = 5
+  default     = null
+}
+
+variable "enable_cdn" {
+  description = "Enable Cloud CDN for this BackendService."
+  type        = bool
+  default     = false
+}
+
+variable "session_affinity" {
+  description = "Type of session affinity to use. Possible values are: NONE, CLIENT_IP, CLIENT_IP_PORT_PROTO, CLIENT_IP_PROTO, GENERATED_COOKIE, HEADER_FIELD, HTTP_COOKIE, STRONG_COOKIE_AFFINITY."
+  type        = string
+  default     = null
+}
+
+variable "affinity_cookie_ttl_sec" {
+  description = "Lifetime of cookies in seconds if session_affinity is GENERATED_COOKIE."
+  type        = number
+  default     = null
+}
+
+variable "locality_lb_policy" {
+  description = "The load balancing algorithm used within the scope of the locality."
+  type        = string
+  default     = null
+}
+
+variable "security_policy" {
+  description = "The resource URL for the security policy to associate with the backend service"
+  type        = string
+  default     = null
 }
 
 variable "timeout_sec" {
-  description = "Timeout in seconds for each health check"
+  description = "This has different meaning for different type of load balancing. Please refer https://cloud.google.com/load-balancing/docs/backend-service#timeout-setting"
   type        = number
-  default     = 5
+  default     = null
 }
 
 variable "health_check" {
@@ -58,31 +107,13 @@ variable "health_check" {
     proxy_header        = optional(string, null)
     port_specification  = optional(string, null)
     protocol            = optional(string, null)
-    check_interval_sec  = optional(number, 5)
-    timeout_sec         = optional(number, 5)
+    check_interval_sec  = optional(number, 10)
+    timeout_sec         = optional(number, 10)
     healthy_threshold   = optional(number, 2)
     unhealthy_threshold = optional(number, 2)
-    logging             = optional(bool, false)
+    logging             = optional(bool, true)
   })
   default = null
-}
-
-variable "healthy_threshold" {
-  description = "Number of consecutive successes required to mark an instance as healthy"
-  type        = number
-  default     = 2
-}
-
-variable "unhealthy_threshold" {
-  description = "Number of consecutive failures required to mark an instance as unhealthy"
-  type        = number
-  default     = 2
-}
-
-variable "health_check_port" {
-  description = "Port for the health check"
-  type        = number
-  default     = 80
 }
 
 variable "firewall_networks" {
@@ -116,6 +147,35 @@ variable "serverless_neg_backends" {
     type            = string // cloud-run, cloud-function, and app-engine
     service_name    = string
     service_version = optional(string)
+    capacity_scaler = optional(number, 1.0)
   }))
   default = []
+}
+
+variable "groups" {
+  description = "The list of backend instance group which serves the traffic."
+  type = list(object({
+    group       = string
+    description = optional(string)
+
+    balancing_mode               = optional(string)
+    capacity_scaler              = optional(number)
+    max_connections              = optional(number)
+    max_connections_per_instance = optional(number)
+    max_connections_per_endpoint = optional(number)
+    max_rate                     = optional(number)
+    max_rate_per_instance        = optional(number)
+    max_rate_per_endpoint        = optional(number)
+    max_utilization              = optional(number)
+  }))
+  default = []
+}
+
+variable "host_path_mappings" {
+  description = "The list of host/path for which traffic could be sent to the backend service"
+  type = list(object({
+    host = string
+    path = string
+  }))
+  default = [{ host : "*", path : "/*" }]
 }

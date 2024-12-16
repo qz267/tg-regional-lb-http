@@ -16,10 +16,5 @@
 
 output "external_ip" {
   description = "The IP address of the forwarding rule"
-  value       = module.frontend.external_ip
-}
-
-output "backend_service_name" {
-  description = "The name of the backend service"
-  value       = module.backend.backend_service_name
+  value       = module.lb-http-frontend.external_ip
 }
