@@ -156,21 +156,9 @@ variable "http_forward" {
   default     = true
 }
 
-variable "certificate_map" {
-  description = "Certificate Map ID in format projects/{project}/locations/global/certificateMaps/{name}. Identifies a certificate map associated with the given target proxy.  Requires `ssl` to be set to `true`"
-  type        = string
-  default     = null
-}
-
 variable "ssl_policy" {
   type        = string
   description = "Selfink to SSL Policy"
-  default     = null
-}
-
-variable "quic" {
-  type        = bool
-  description = "Specifies the QUIC override policy for this resource. Set true to enable HTTP/3 and Google QUIC support, false to disable both. Defaults to null which enables support for HTTP/3 only."
   default     = null
 }
 
@@ -183,5 +171,11 @@ variable "server_tls_policy" {
 variable "http_keep_alive_timeout_sec" {
   description = "Specifies how long to keep a connection open, after completing a response, while there is no matching traffic (in seconds)."
   type        = number
+  default     = null
+}
+
+variable "proxy_subnetwork" {
+  description = "subnetwork for the proxy."
+  type        = string
   default     = null
 }

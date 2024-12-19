@@ -84,7 +84,7 @@ variable "locality_lb_policy" {
 }
 
 variable "security_policy" {
-  description = "The resource URL for the security policy to associate with the backend service"
+  description = "Security policy in string."
   type        = string
   default     = null
 }
@@ -171,53 +171,16 @@ variable "groups" {
   default = []
 }
 
-variable "host_path_mappings" {
-  description = "The list of host/path for which traffic could be sent to the backend service"
-  type = list(object({
-    host = string
-    path = string
-  }))
-  default = [{ host : "*", path : "/*" }]
-}
-
-variable "name" {
-  description = "Name for the forwarding rule and prefix for supporting resources"
-  type        = string
-}
-
-variable "project_id" {
-  description = "The project to deploy to, if not set the default provider project is used."
-  type        = string
-}
-
-variable "region" {
-  description = "The region where the load balancer will be created"
-  type        = string
-  default     = "us-central1"
-}
-
 variable "create_address" {
   type        = bool
   description = "Create a new global IPv4 address"
   default     = true
 }
 
-variable "address" {
-  type        = string
-  description = "Existing IPv4 address to use (the actual IP address value)"
-  default     = null
-}
-
 variable "labels" {
   description = "The labels to attach to resources created by this module"
   type        = map(string)
   default     = {}
-}
-
-variable "load_balancing_scheme" {
-  description = "Load balancing scheme type (EXTERNAL for classic external load balancer, EXTERNAL_MANAGED for Envoy-based load balancer, and INTERNAL_SELF_MANAGED for traffic director)"
-  type        = string
-  default     = "EXTERNAL_MANAGED"
 }
 
 variable "ssl" {
@@ -262,16 +225,6 @@ variable "random_certificate_suffix" {
   default     = false
 }
 
-variable "url_map_input" {
-  description = "List of host, path and backend service for creating url_map"
-  type = list(object({
-    host            = string
-    path            = string
-    backend_service = string
-  }))
-  default = []
-}
-
 variable "network" {
   description = "Network for INTERNAL_SELF_MANAGED load balancing scheme"
   type        = string
@@ -304,39 +257,15 @@ variable "create_url_map" {
   default     = true
 }
 
-variable "url_map_resource_uri" {
-  description = "The url_map resource to use. Default is to send all traffic to first backend."
-  type        = string
-  default     = null
-}
-
 variable "https_redirect" {
   description = "Set to `true` to enable https redirect on the lb."
   type        = bool
   default     = false
 }
 
-variable "http_forward" {
-  description = "Set to `false` to disable HTTP port 80 forward"
-  type        = bool
-  default     = true
-}
-
-variable "certificate_map" {
-  description = "Certificate Map ID in format projects/{project}/locations/global/certificateMaps/{name}. Identifies a certificate map associated with the given target proxy.  Requires `ssl` to be set to `true`"
-  type        = string
-  default     = null
-}
-
 variable "ssl_policy" {
   type        = string
   description = "Selfink to SSL Policy"
-  default     = null
-}
-
-variable "quic" {
-  type        = bool
-  description = "Specifies the QUIC override policy for this resource. Set true to enable HTTP/3 and Google QUIC support, false to disable both. Defaults to null which enables support for HTTP/3 only."
   default     = null
 }
 
@@ -351,3 +280,32 @@ variable "http_keep_alive_timeout_sec" {
   type        = number
   default     = null
 }
+
+variable "address" {
+  type        = string
+  description = "Existing IPv4 address to use (the actual IP address value)"
+  default     = null
+}
+
+variable "http_forward" {
+  description = "Set to `false` to disable HTTP port 80 forward"
+  type        = bool
+  default     = true
+}
+
+variable "url_map_input" {
+  description = "List of host, path and backend service for creating url_map"
+  type = list(object({
+    host            = string
+    path            = string
+    backend_service = string
+  }))
+  default = []
+}
+
+variable "url_map_resource_uri" {
+  description = "The url_map resource to use. Default is to send all traffic to first backend."
+  type        = string
+  default     = null
+}
+
