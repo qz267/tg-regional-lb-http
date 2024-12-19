@@ -1,11 +1,12 @@
 **/backend.tf
 **/values-*.yaml
 
-# Local .terraform directories
+# Local .terraform directories & files
 **/.terraform/*
 **/.terraform.lock.hcl
 **/terraform.tfstate*
 **/terraform.tfplan
+**/.terraform.lock
 
 .idea
 .kitchen
