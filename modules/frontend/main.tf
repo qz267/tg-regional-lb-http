@@ -50,6 +50,7 @@ resource "google_compute_forwarding_rule" "default" {
   load_balancing_scheme = var.load_balancing_scheme
   labels                = var.labels
   network               = var.network
+  depends_on            = [var.proxy_subnetwork]
 }
 
 resource "google_compute_forwarding_rule" "https" {
@@ -62,6 +63,7 @@ resource "google_compute_forwarding_rule" "https" {
   ip_address            = local.address
   labels                = var.labels
   network               = var.network
+  depends_on            = [var.proxy_subnetwork]
 }
 
 resource "google_compute_global_address" "default" {

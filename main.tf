@@ -14,6 +14,30 @@
  * limitations under the License.
  */
 
+locals {
+  address = var.create_address ? join("", google_compute_global_address.default[*].address) : var.address
+
+  url_map             = var.create_url_map ? join("", google_compute_region_url_map.default[*].self_link) : var.url_map_resource_uri
+  create_http_forward = var.http_forward || var.https_redirect
+
+  is_internal = var.load_balancing_scheme == "INTERNAL_SELF_MANAGED"
+
+  # Create a map with hosts as keys and empty lists as initial values
+  hosts = toset([for service in var.url_map_input : service.host])
+  backend_services_by_host = {
+    for host in local.hosts :
+    host => {
+      for s in var.url_map_input :
+      s.path => s.backend_service if s.host == host
+    }
+  }
+
+  # Find a backend service to be used for url_map in absence of host "*" and path "/*"
+  first_host            = keys(local.backend_services_by_host)[0]
+  first_path            = keys(local.backend_services_by_host[local.first_host])[0]
+  first_backend_service = local.backend_services_by_host[local.first_host][local.first_path]
+}
+
 resource "google_compute_region_backend_service" "default" {
   provider = google-beta
 
@@ -276,13 +300,6 @@ resource "google_compute_region_url_map" "default" {
     }
   }
 }
-
-# resource "google_compute_region_url_map" "default" {
-#   name            = "${var.name}-url-map-default"
-#   default_service = local.backend_services_by_host["*"]["/*"]
-#   region          = var.region
-#   project = var.project_id
-# }
 
 resource "google_compute_region_target_http_proxy" "default" {
   count   = local.create_http_forward ? 1 : 0
